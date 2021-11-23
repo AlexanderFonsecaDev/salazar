@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use App\Models\Article;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -16,6 +17,7 @@ class ArticleForm extends Component
             'article.title' => ['required','min:4'],
             'article.slug' => [
                 'required',
+                'alpha_dash',
                 Rule::unique('articles','slug')->ignore($this->article)
             ],
             'article.content' => ['required']
@@ -32,6 +34,11 @@ class ArticleForm extends Component
         $this->validateOnly($propertyName);
     }
 
+    public function updatedArticleTitle($title)
+    {
+        $this->article->slug = Str::slug($title);
+    }
+
     public function save()
     {
 
@@ -46,6 +53,6 @@ class ArticleForm extends Component
 
     public function render()
     {
-        return view('livewire.article-form')->layout('layouts.guest');
+        return view('livewire.article-form');
     }
 }

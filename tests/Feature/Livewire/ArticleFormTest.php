@@ -4,6 +4,7 @@ namespace Tests\Feature\Livewire;
 
 use App\Http\Livewire\ArticleForm;
 use App\Models\Article;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -13,16 +14,34 @@ class ArticleFormTest extends TestCase
 
     use RefreshDatabase;
 
+
     /** @test */
-    public function article_form_render_properly()
+    public function guests_cannot_create_or_update_articles()
     {
         $this->get(route('articles.create'))
-            ->assertSeeLivewire(ArticleForm::class);
+            ->assertRedirect('login');
 
 
         $article = Article::factory()->create();
 
         $this->get(route('articles.edit',$article))
+            ->assertRedirect('login');
+
+    }
+
+    /** @test */
+    public function article_form_render_properly()
+    {
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get(route('articles.create'))
+            ->assertSeeLivewire(ArticleForm::class);
+
+
+        $article = Article::factory()->create();
+
+        $this->actingAs($user)->get(route('articles.edit',$article))
             ->assertSeeLivewire(ArticleForm::class);
 
     }
@@ -87,9 +106,22 @@ class ArticleFormTest extends TestCase
     {
         Livewire::test(ArticleForm::class)
             ->set('article.title',"Title for article")
+            ->set('article.slug',null)
             ->set('article.content', "Content for the article")
             ->call("save")
             ->assertHasErrors(['article.slug' =>'required'])
+        ;
+    }
+
+    /** @test */
+    public function slug_must_only_contain_letters_numbers_dashes_and_underscores()
+    {
+        Livewire::test(ArticleForm::class)
+            ->set('article.title',"Title for article")
+            ->set('article.slug',"#$#%$#%#")
+            ->set('article.content', "Content for the article")
+            ->call("save")
+            ->assertHasErrors(['article.slug' =>'alpha_dash'])
         ;
     }
 
@@ -165,6 +197,15 @@ class ArticleFormTest extends TestCase
             ->assertHasErrors(['article.content' =>'required'])
             ->set("article.content","Body for the new article")
             ->assertHasNoErrors(['article.content' =>'required'])
+        ;
+    }
+
+    /** @test */
+    public function slug_is_generated_automatically()
+    {
+        Livewire::test(ArticleForm::class)
+            ->set("article.title","Title for article")
+            ->assertSet('article.slug',"title-for-article")
         ;
     }
 
