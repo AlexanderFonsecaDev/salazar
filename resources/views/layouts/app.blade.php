@@ -17,6 +17,11 @@
 
         <!-- Scripts -->
         <script src="{{ mix('js/app.js') }}" defer></script>
+        <link rel='shortcut icon' type='image/vnd.microsoft.icon' href='{{ asset('favicon.ico') }}'> <!-- IE -->
+        <link rel='apple-touch-icon' type='image/png' href='{{ asset('favicon.ico') }}'> <!-- iPhone -->
+        <link rel='apple-touch-icon' type='image/png' sizes='72x72' href='{{ asset('favicon.ico') }}'> <!-- iPad -->
+        <link rel='apple-touch-icon' type='image/png' sizes='114x114' href='{{ asset('favicon.ico') }}'> <!-- iPhone4 -->
+        <link rel='icon' type='image/png' href='{{ asset('favicon.ico') }}'> <!-- Opera Speed Dial, at least 144×114 px -->
     </head>
     <body class="font-sans antialiased">
         <x-jet-banner />
