@@ -4,22 +4,32 @@ namespace App\Http\Livewire;
 
 use App\Models\Article;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class ArticleForm extends Component
 {
 
-    public Article $article;
+    use WithFileUploads;
 
-    protected function rules(){
+    public Article $article;
+    public $image;
+
+    protected function rules()
+    {
         return [
-            'article.title' => ['required','min:4'],
+            'image' => [
+                'nullable',
+                Rule::when($this->image, ['image', 'max:5048'])
+            ],
+            'article.title' => ['required', 'min:4'],
             'article.slug' => [
                 'required',
                 'alpha_dash',
-                Rule::unique('articles','slug')->ignore($this->article)
+                Rule::unique('articles', 'slug')->ignore($this->article)
             ],
             'article.content' => ['required']
         ];
@@ -43,13 +53,15 @@ class ArticleForm extends Component
     public function save()
     {
 
-        $this-> validate();
+        $this->validate();
+
+        if ($this->image) {
+            $this->article->image = $this->uploadImage();
+        }
 
         Auth::user()->articles()->save($this->article);
 
-        /*$this->article->save();*/
-
-        session()->flash('status',__('Articulo guardado.'));
+        session()->flash('status', __('Articulo guardado.'));
 
         $this->redirectRoute('articles.index');
     }
@@ -58,4 +70,13 @@ class ArticleForm extends Component
     {
         return view('livewire.article-form');
     }
+
+    protected function uploadImage()
+    {
+        if ($oldImage = $this->article->image) {
+            Storage::disk('public')->delete($oldImage);
+        }
+        return Storage::url($this->image->store('/', 'public'));
+    }
+
 }

@@ -34,7 +34,7 @@
 
     @livewireStyles
 </head>
-<body class="leading-normal tracking-normal text-white gradient" style="font-family: 'Source Sans Pro', sans-serif;">
+<body class="leading-normal tracking-normal text-black gradient" style="font-family: 'Source Sans Pro', sans-serif;">
 
 <!--Nav-->
 <nav id="header" class="fixed w-full z-30 top-0 text-white">

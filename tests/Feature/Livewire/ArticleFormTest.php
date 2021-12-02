@@ -6,6 +6,8 @@ use App\Http\Livewire\ArticleForm;
 use App\Models\Article;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -49,9 +51,14 @@ class ArticleFormTest extends TestCase
     /** @test */
     public function can_create_new_articles()
     {
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('post-image.png');
+
         $user = User::factory()->create();
 
         Livewire::actingAs($user)->test(ArticleForm::class)
+            ->set('image',$image)
             ->set('article.title', 'New article')
             ->set('article.slug', 'new-article')
             ->set('article.content', 'Content article')
@@ -60,10 +67,11 @@ class ArticleFormTest extends TestCase
             ->assertRedirect(route('articles.index'));
 
         $this->assertDatabaseHas('articles', [
-            'title' => 'New article',
-            'slug' => 'new-article',
+            'image'   => Storage::disk('public')->files()[0],
+            'title'   => 'New article',
+            'slug'    => 'new-article',
             'content' => 'Content article',
-            'user_id' => $user->id
+            'user_id' =>  $user->id
         ]);
     }
 
@@ -71,7 +79,6 @@ class ArticleFormTest extends TestCase
     /** @test */
     public function can_update_articles()
     {
-
         $article = Article::factory()->create();
 
         Livewire::actingAs($article->user)->test(ArticleForm::class,['article' => $article])
@@ -81,7 +88,7 @@ class ArticleFormTest extends TestCase
             ->set('article.title','Title updated')
             ->set('article.slug','title-updated')
             ->set('article.content','Content updated')
-            ->call("save")
+            ->call('save')
             ->assertSessionHas('status')
             ->assertRedirect(route('articles.index'));
 
@@ -93,6 +100,30 @@ class ArticleFormTest extends TestCase
             'content' => "Content updated",
             'user_id' => $article->user->id
         ]);
+    }
+
+    /** @test */
+    public function can_update_articles_with_image()
+    {
+
+        Storage::fake('public');
+
+        $oldImage = UploadedFile::fake()->image('old-image.png');
+        $oldPathImage = $oldImage->store('/','public');
+        $newImage = UploadedFile::fake()->image('new-image.png');
+
+        $article = Article::factory()->create([
+            'image' => $oldPathImage
+        ]);
+
+        Livewire::actingAs($article->user)->test(ArticleForm::class,['article' => $article])
+            ->set('image',$newImage)
+            ->call('save')
+            ->assertSessionHas('status')
+            ->assertRedirect(route('articles.index'));
+
+        Storage::disk('public')->exists($article->fresh()->image);
+        Storage::disk('public')->assertMissing($oldPathImage);
     }
 
     /** @test */

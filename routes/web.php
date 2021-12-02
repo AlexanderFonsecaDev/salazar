@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Livewire\Admin\Dashboard;
 use App\Http\Livewire\ArticleForm;
 use App\Http\Livewire\Articles;
 use App\Http\Livewire\ArticleShow;
@@ -19,6 +20,4 @@ Route::get('/blog/{article}/edit',ArticleForm::class)->name('articles.edit')->mi
 Route::get('/blog/{article}',ArticleShow::class)->name('articles.show');
 
 
-Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
+Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', Dashboard::class)->name('dashboard');
